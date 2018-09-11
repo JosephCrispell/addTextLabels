@@ -111,7 +111,7 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
     }else{
       
       # Add label
-      addLabel(x=xCoords[i], y=yCoords[i], label=labels[i], cex=cex, col=col.label, bg=col.background)
+      addLabel(x=xCoords[i], y=yCoords[i], label=labels[i], cex=cex, col=col.label, bg=col.background, border=border)
     }
   }
 }
