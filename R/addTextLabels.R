@@ -66,8 +66,17 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   # Produce a list of alternative locations #
   ###########################################
   
+  # Set the amount to pad onto height and width
+  heightPad <- 0.5
+  widthPad <- 0.02
+  if(is.null(col.background)){
+    heightPad <- 0
+    widthPad <- 0
+  }
+  
   # Calculate the label heights and widths
-  labelDimensions <- calculateLabelHeightsAndWidths(labels=labels, cex=cex, polygonAdded=is.null(col.background) == FALSE)
+  labelDimensions <- calculateLabelHeightsAndWidths(labels=labels, cex=cex,
+                                                    heightPad=heightPad, widthPad=widthPad)
   textHeights <- labelDimensions[["Heights"]]
   textWidths <- labelDimensions[["Widths"]]
   
@@ -92,11 +101,12 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
       
       # Add line back to previous location
       addLineBackToOriginalLocation(altX=altX[newLocationIndex], altY=altY[newLocationIndex],
-                                    x=xCoords[i], y=yCoords[i], label=labels[i], cex=cex, col=col.line, lty=lty, lwd=lwd)
+                                    x=xCoords[i], y=yCoords[i], label=labels[i], cex=cex, col=col.line,
+                                    lty=lty, lwd=lwd, heightPad=heightPad, widthPad=widthPad)
       
       # Add label
-      addLabel(x=altX[newLocationIndex], y=altY[newLocationIndex], label=labels[i], cex=cex, col=col.label, bg=col.background, 
-               border=border)
+      addLabel(x=altX[newLocationIndex], y=altY[newLocationIndex], label=labels[i], cex=cex, col=col.label,
+               bg=col.background, border=border, heightPad=heightPad, widthPad=widthPad)
       
       # Remove new location and any locations too close to it
       output <- removeLocationAndThoseCloseToItFromAlternatives(
@@ -111,7 +121,8 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
     }else{
       
       # Add label
-      addLabel(x=xCoords[i], y=yCoords[i], label=labels[i], cex=cex, col=col.label, bg=col.background, border=border)
+      addLabel(x=xCoords[i], y=yCoords[i], label=labels[i], cex=cex, col=col.label, bg=col.background, border=border,
+               heightPad=heightPad, widthPad=widthPad)
     }
   }
 }
@@ -128,18 +139,22 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
 #' @param col Colour of line to be plotted
 #' @param lty A number detailing the type of line to be plotted. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash. Defaults to 1
 #' @param lwd A number to scale the size of plotted line. Defaults to 1
+#' @param heightPad Multiplyer for label height should added to label to be used to pad height
+#' @param widthPad Multiplyer for label width should added to label to be used to pad width
 #' @keywords internal
-addLineBackToOriginalLocation <- function(altX, altY, x, y, label, cex, col, lty=1, lwd=1){
+addLineBackToOriginalLocation <- function(altX, altY, x, y, label, cex, col, lty=1, lwd=1, heightPad, widthPad){
   
   # Calculate the label width and height
   labelHeight <- strheight(label, cex=cex)
   labelWidth <- strwidth(label, cex=cex)
   
+  # Calculate amount outer left/right and above/below
+  xHalf <- strwidth(label) * (0.5 + (0.5 * widthPad))
+  yHalf <- strheight(label) * (0.5 + (0.5 * heightPad))
+  
   # Create a set of points marking the boundaries of the label
-  xMarkers <- c(seq(from=altX - (labelWidth * 0.52), to=altX + (labelWidth * 0.52), by=0.05*labelWidth), 
-                altX + (labelWidth * 0.52))
-  yMarkers <- c(seq(from=altY - (labelHeight * 0.6), to=altY + (labelHeight * 0.6), by=0.05*labelHeight),
-                altY + (labelHeight * 0.6))
+  xMarkers <- c(seq(from=altX - xHalf, to=altX + xHalf, by=0.05*labelWidth), altX + xHalf)
+  yMarkers <- c(seq(from=altY - yHalf, to=altY + yHalf, by=0.05*labelHeight), altY + yHalf)
   
   # Calculate the closest pair of X and Y coordinates to the origin
   closestX <- xMarkers[which.min(abs(xMarkers - x))]
@@ -154,21 +169,20 @@ addLineBackToOriginalLocation <- function(altX, altY, x, y, label, cex, col, lty
 #' Function used by \code{addTextLabels()}
 #' @param labels A vector of the labels
 #' @param cex The number used to scale the size of the label and therefore its height and width
-#' @param polygonAdded A logical (TRUE/FALSE) variable to indicate whether polygons are going to be plotted. If they are widths and heights are made slightly larger
+#' @param heightPad Multiplyer for label height should added to label to be used to pad height
+#' @param widthPad Multiplyer for label width should added to label to be used to pad width
 #' @keywords internal
 #' @return Returns a list containing the heights and widths of the labels provided
-calculateLabelHeightsAndWidths <- function(labels, cex, polygonAdded){
+calculateLabelHeightsAndWidths <- function(labels, cex, heightPad, widthPad){
   
   # Get the text label heights and lengths
   textHeights <- strheight(labels) * cex
   textWidths <- strwidth(labels) * cex
   
-  # If plotting boxes for labels make widths and heights slightly larger
-  if(polygonAdded == TRUE){
-    textHeights <- textHeights + (0.25 * textHeights)
-    textWidths <- textWidths + (0.05 * textWidths)
-  }
-  
+  # Add padding to widths and heights
+  textHeights <- textHeights + (heightPad * textHeights)
+  textWidths <- textWidths + (widthPad * textWidths)
+ 
   # Create the output
   output <- list("Heights"=textHeights, "Widths"=textWidths)
   
@@ -241,8 +255,10 @@ generateAlternativeLocations <- function(xCoords, yCoords, textHeights, textWidt
 #' @param col The colour of the label to be plotted
 #' @param bg The colour of the polygon to be plotted. If NULL no polygon plotted
 #' @param border The colour of the polygon border. If NA, no border plotted
+#' @param heightPad Multiplyer for label height should added to label to be used to pad height
+#' @param widthPad Multiplyer for label width should added to label to be used to pad width
 #' @keywords internal
-addLabel <- function(x, y, label, cex, col, bg, border){
+addLabel <- function(x, y, label, cex, col, bg, border, heightPad, widthPad){
   
   # Calculate the height and width of the label
   labelHeight <- strheight(label, cex=cex)
@@ -250,16 +266,15 @@ addLabel <- function(x, y, label, cex, col, bg, border){
   
   # Add a background polygon - if requested
   if(is.null(bg) == FALSE){
-    polygon(x=c(x - (labelWidth * 0.52),
-                x - (labelWidth * 0.52),
-                x + (labelWidth * 0.52),
-                x + (labelWidth * 0.52)),
-            y=c(y - (labelHeight * 0.6),
-                y + (labelHeight * 0.6),
-                y + (labelHeight * 0.6),
-                y - (labelHeight * 0.6)), 
-            col=bg,
-            border=border, xpd=TRUE)
+    
+    # Calculate amount outer left/right and above/below
+    xHalf <- strwidth(label) * (0.5 + (0.5 * widthPad))
+    yHalf <- strheight(label) * (0.5 + (0.5 * heightPad))
+    
+    # Plot the background polygon
+    polygon(x=c(x - xHalf, x - xHalf, x + xHalf, x + xHalf),
+            y=c(y - yHalf, y + yHalf, y + yHalf, y - yHalf), 
+            col=bg, border=border, xpd=TRUE)
   }
   
   
