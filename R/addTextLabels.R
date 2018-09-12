@@ -83,8 +83,11 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   # Generate the alternative locations
   output <- generateAlternativeLocations(xCoords=xCoords, yCoords=yCoords, textHeights=textHeights,
                                          textWidths=textWidths, cex=cex)
-  altX <- output[["AltX"]]
-  altY <- output[["AltY"]]
+  altXs <- output[["AltX"]]
+  altYs <- output[["AltY"]]
+  
+  # Calculate the distance between the actual and alternative points
+  distances <- euclideanDistances(x1s=xCoords, y1s=yCoords, x2s=altXs, y2s=altYs)
   
   ##############################################################
   # Add labels to plot assigning new locations where necessary #
@@ -94,30 +97,31 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   for(i in 1:length(xCoords)){
     
     # Is the current point too close to others?
-    if(tooClose(xCoords, yCoords, i, textHeights[i], textWidths[i]) == TRUE && length(altX) != 0){
+    if(tooClose(xCoords, yCoords, i, textHeights, textWidths) == TRUE && length(altXs) != 0){
       
       # Get a new location
-      newLocationIndex <- chooseNewLocation(xCoords[i], yCoords[i], altX, altY)
+      newLocationIndex <- chooseNewLocation(xCoords, yCoords, i, altXs, altYs, distances, textHeights, textWidths)
       
       # Add line back to previous location
-      addLineBackToOriginalLocation(altX=altX[newLocationIndex], altY=altY[newLocationIndex],
+      addLineBackToOriginalLocation(altX=altXs[newLocationIndex], altY=altYs[newLocationIndex],
                                     x=xCoords[i], y=yCoords[i], label=labels[i], cex=cex, col=col.line,
                                     lty=lty, lwd=lwd, heightPad=heightPad, widthPad=widthPad)
-      
+        
       # Add label
-      addLabel(x=altX[newLocationIndex], y=altY[newLocationIndex], label=labels[i], cex=cex, col=col.label,
+      addLabel(x=altXs[newLocationIndex], y=altYs[newLocationIndex], label=labels[i], cex=cex, col=col.label,
                bg=col.background, border=border, heightPad=heightPad, widthPad=widthPad)
-      
+        
+      # Change the X and Y coordinates to the alternate ones
+      xCoords[i] <- altXs[newLocationIndex]
+      yCoords[i] <- altYs[newLocationIndex]
+        
       # Remove new location and any locations too close to it
       output <- removeLocationAndThoseCloseToItFromAlternatives(
-        altX, altY, newLocationIndex, textHeights[i], textWidths[i])
-      altX <- output[["X"]]
-      altY <- output[["Y"]]
-      
-      # Change the X and Y coordinates to the alternate ones
-      xCoords[i] <- altX[newLocationIndex]
-      yCoords[i] <- altY[newLocationIndex]
-      
+        altXs, altYs, newLocationIndex, textHeights[i], textWidths[i], distances)
+      altXs <- output[["X"]]
+      altYs <- output[["Y"]]
+      distances <- output[["distances"]]
+
     }else{
       
       # Add label
@@ -285,51 +289,92 @@ addLabel <- function(x, y, label, cex, col, bg, border, heightPad, widthPad){
 #' Remove coordinates of alternative locations that are too close to coordinates
 #'
 #' Function used by \code{addTextLabels()}
-#' @param altX A vector of X coordinates for alternative locations
-#' @param altY A vector of Y coordinates for alternative locations
+#' @param altXs A vector of X coordinates for alternative locations
+#' @param altYs A vector of Y coordinates for alternative locations
 #' @param index The index of the point of interest in the coordinate vectors
 #' @param textHeight The height of the label to be plotted at the point of interest
 #' @param textWidth The width of the label to be plotted at the point of interest
+#' @param distances The distances between the actual and alternative locations
 #' @keywords internal
-#' @return Returns a list of the coordinates of the alternative locations that weren't too close
-removeLocationAndThoseCloseToItFromAlternatives <- function(altX, altY, index, textHeight, textWidth){
+#' @return Returns a list of the coordinates of the alternative locations that weren't too close and the distance matrix of the alternate locations to the actual locations
+removeLocationAndThoseCloseToItFromAlternatives <- function(altXs, altYs, index, textHeight, textWidth, distances){
   remove <- c(index)
-  for(i in 1:length(altX)){
+  for(i in 1:length(altXs)){
     
     if(i == index){
       next
     }
     
-    if(abs(altX[index] - altX[i]) < textWidth &&
-       abs(altY[index] - altY[i]) < textHeight){
+    if(abs(altXs[index] - altXs[i]) < textWidth &&
+       abs(altYs[index] - altYs[i]) < textHeight){
       remove[length(remove) + 1] <- i
     }
   }
   
-  altX <- altX[-remove]
-  altY <- altY[-remove]
+  altXs <- altXs[-remove]
+  altYs <- altYs[-remove]
+  distances <- distances[, -remove]
   
-  return(list("X" = altX, "Y" = altY))
+  return(list("X" = altXs, "Y" = altYs, "distances"=distances))
 }
 
 #' A function to choose (from the alternative locations) a new location for a label to be plotted at
 #'
 #' Function used by \code{addTextLabels()}
-#' @param x The X coordinate at which label was to be plotted
-#' @param y The Y coordinate at which label was to be plotted
+#' @param xCoords The X coordinates of actual points
+#' @param yCoords The Y coordinates of actual points
+#' @param index The index of the point of interest
 #' @param altXs A vector of X coordinates for alternative locations
 #' @param altYs A vector of Y coordinates for alternative locations
+#' @param distances The distances between the actual and alternative locations
+#' @param textHeights The heights of the labels to be plotted
+#' @param textWidths The widths of the labels to be plotted
 #' @keywords internal
 #' @return Returns the index of the chosen alternative location
-chooseNewLocation <- function(x, y, altXs, altYs){
+chooseNewLocation <- function(xCoords, yCoords, index, altXs, altYs, distances, textHeights, textWidths){
   
-  # Calculate the distance from point to all alternatives
-  distances <- c()
-  for(i in 1:length(altXs)){
-    distances[i] <- euclideanDistance(x, y, altXs[i], altYs[i])
+  # Get the indices of the alternative locations as an ordered
+  orderedAlternateLocationIndices <- order(distances[index, ])
+
+  # Initialise a variable to store the index of the selected alternative location
+  indexOfSelectedAlternativeLocation <- -1
+  
+  # Examine each of the alternate locations in order
+  for(i in orderedAlternateLocationIndices){
+    
+    # Store the current index
+    indexOfSelectedAlternativeLocation <- i
+    
+    # Get the coordinates of the current alternative location
+    altX <- altXs[orderedAlternateLocationIndices[i]]
+    altY <- altYs[orderedAlternateLocationIndices[i]]
+    
+    # Initialise a variable to record whether the current alternative location is too close to the actual points
+    tooClose <- FALSE
+    
+    # Check if we place label at current location, would it overlap with any of the labels at the actual locations?
+    for(j in seq_along(xCoords)){
+      
+      # Skip the index provided
+      if(j == index){
+        next
+      }
+      
+      # Check if too close
+      if(abs(altX - xCoords[j]) < (0.5 * textWidths[j]) + (0.5 * textWidths[index]) && 
+         abs(altY - yCoords[j]) < (0.5 * textHeights[j]) + (0.5 * textHeights[index])){
+        tooClose <- TRUE
+        break
+      }
+    }
+    
+    # If current alternative location isn't too close to other points - record it and finish
+    if(tooClose == FALSE){
+      break
+    }
   }
   
-  return(which.min(distances))
+  return(indexOfSelectedAlternativeLocation)
 }
 
 #' Checks whether a point is too close to any others
@@ -338,25 +383,52 @@ chooseNewLocation <- function(x, y, altXs, altYs){
 #' @param xCoords A vector containing the X coordinates for labels
 #' @param yCoords A vector containing the Y coordinates for labels
 #' @param index The index of the point of interest
-#' @param textHeight The height of the label to be plotted at the point of interest
-#' @param textWidth The width of the label to be plotted at the point of interest
+#' @param textHeights The heights of the labels to be plotted
+#' @param textWidths The widths of the labels to be plotted
 #' @keywords internal
 #' @return Returns a logical variable to indicate whether the point of interest was too close to any points
-tooClose <- function(xCoords, yCoords, index, textHeight, textWidth){
+tooClose <- function(xCoords, yCoords, index, textHeights, textWidths){
   
   result <- FALSE
   for(i in 1:length(xCoords)){
     
     if(i == index){
       next
-    }else if(abs(xCoords[index] - xCoords[i]) < textWidth &&
-             abs(yCoords[index] - yCoords[i]) < textHeight){
+    }else if(abs(xCoords[index] - xCoords[i]) < (0.5 * textWidths[i]) + (0.5 * textWidths[index]) &&
+             abs(yCoords[index] - yCoords[i]) < (0.5 * textHeights[i]) + (0.5 * textHeights[index])){
       result <- TRUE
       break
     }
   }
   
   return(result) 
+}
+
+#' Calculate the euclidean distance between two sets of points
+#'
+#' Function used by \code{addTextLabels()}
+#' @param x1s A vector X coordinates for the first set of points
+#' @param y1s A vector Y coordinates for the first set of points
+#' @param x2s A vector X coordinates for the second set of points
+#' @param y2s A vector Y coordinates for the second set of points
+#' @keywords internal
+#' @return Returns the distances between the sets of points provided
+euclideanDistances <- function(x1s, y1s, x2s, y2s){
+  
+  # Initialise a matrix to store distances - note that it is non-symmetric!!!
+  distances <- matrix(NA, nrow=length(x1s), ncol=length(x2s))
+  
+  # Fill the matrix with distances
+  for(row in seq_along(x1s)){
+    
+    for(col in seq_along(x2s)){
+      
+      # Calculate the distance between the current pair of points
+      distances[row, col] <- euclideanDistance(x1=x1s[row], y1=y1s[row], x2=x2s[col], y2=y2s[col])
+    }
+  }
+  
+  return(distances)
 }
 
 #' Calculate the euclidean distance between two points
