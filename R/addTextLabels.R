@@ -186,8 +186,8 @@ calculateLabelHeightsAndWidths <- function(labels, cex, heightPad, widthPad){
   textWidths <- strwidth(labels) * cex
   
   # Add padding to widths and heights
-  textHeights <- textHeights + (heightPad * textHeights)
-  textWidths <- textWidths + (widthPad * textWidths)
+  textHeights <- textHeights + (2 * heightPad *textHeights)
+  textWidths <- textWidths + (2 * widthPad *textWidths)
  
   # Create the output
   output <- list("Heights"=textHeights, "Widths"=textWidths)
