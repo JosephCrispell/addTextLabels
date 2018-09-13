@@ -38,6 +38,7 @@
 #' @param lty A number detailing the type of line to plot from relocated labels to original location. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash. Defaults to 1
 #' @param lwd A number to scale the size of line from relocated labels to original location. Defaults to 1
 #' @param border The colour of the border to be plotted around the polygon. Defaults to NA - won't be plotted
+#' @param avoidPoints A logical variable indicating whether labels shouldn't be plotted on top of points
 #' @keywords text label plot
 #' @export
 #' @examples 
@@ -60,7 +61,7 @@
 #' plot(x=coords$X, y=coords$Y, pch=19, bty="n", xaxt="n", yaxt="n", col="red", xlab="X", ylab="Y")
 #' addTextLabels(coords$X, coords$Y, coords$Name, cex=1, col.background=rgb(0,0,0, 0.75), col.label="white")
 addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.line="black", col.background=NULL,
-                          lty=1, lwd=1, border=NA){
+                          lty=1, lwd=1, border=NA, avoidPoints=TRUE){
   
   ###########################################
   # Produce a list of alternative locations #
@@ -97,7 +98,8 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   for(i in 1:length(xCoords)){
     
     # Is the current point too close to others?
-    if(tooClose(xCoords, yCoords, i, textHeights, textWidths) == TRUE && length(altXs) != 0){
+    if((avoidPoints == TRUE && length(altXs) != 0) || 
+       (tooClose(xCoords, yCoords, i, textHeights, textWidths) == TRUE && length(altXs) != 0)){
       
       # Get a new location
       newLocationIndex <- chooseNewLocation(xCoords, yCoords, i, altXs, altYs, distances, textHeights, textWidths)
