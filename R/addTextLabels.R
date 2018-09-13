@@ -186,6 +186,7 @@ calculateLabelHeightsAndWidths <- function(labels, cex, heightPad, widthPad){
   textWidths <- strwidth(labels) * cex
   
   # Add padding to widths and heights
+  # Note multiplies padding by 2 - stops background polygons being directly adjacent
   textHeights <- textHeights + (2 * heightPad *textHeights)
   textWidths <- textWidths + (2 * widthPad *textWidths)
  
