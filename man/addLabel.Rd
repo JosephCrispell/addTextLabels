@@ -4,7 +4,7 @@
 \alias{addLabel}
 \title{Plot a label with optional polygon background}
 \usage{
-addLabel(x, y, label, cex, col, bg, border)
+addLabel(x, y, label, cex, col, bg, border, heightPad, widthPad)
 }
 \arguments{
 \item{x}{The X coordinate at which label is to be plotted}
@@ -20,6 +20,10 @@ addLabel(x, y, label, cex, col, bg, border)
 \item{bg}{The colour of the polygon to be plotted. If NULL no polygon plotted}
 
 \item{border}{The colour of the polygon border. If NA, no border plotted}
+
+\item{heightPad}{Multiplyer for label height should added to label to be used to pad height}
+
+\item{widthPad}{Multiplyer for label width should added to label to be used to pad width}
 }
 \description{
 Function used by \code{addTextLabels()}

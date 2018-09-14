@@ -4,22 +4,24 @@
 \alias{removeLocationAndThoseCloseToItFromAlternatives}
 \title{Remove coordinates of alternative locations that are too close to coordinates}
 \usage{
-removeLocationAndThoseCloseToItFromAlternatives(altX, altY, index,
-  textHeight, textWidth)
+removeLocationAndThoseCloseToItFromAlternatives(altXs, altYs, index,
+  textHeight, textWidth, distances)
 }
 \arguments{
-\item{altX}{A vector of X coordinates for alternative locations}
+\item{altXs}{A vector of X coordinates for alternative locations}
 
-\item{altY}{A vector of Y coordinates for alternative locations}
+\item{altYs}{A vector of Y coordinates for alternative locations}
 
 \item{index}{The index of the point of interest in the coordinate vectors}
 
 \item{textHeight}{The height of the label to be plotted at the point of interest}
 
 \item{textWidth}{The width of the label to be plotted at the point of interest}
+
+\item{distances}{The distances between the actual and alternative locations}
 }
 \value{
-Returns a list of the coordinates of the alternative locations that weren't too close
+Returns a list of the coordinates of the alternative locations that weren't too close and the distance matrix of the alternate locations to the actual locations
 }
 \description{
 Function used by \code{addTextLabels()}

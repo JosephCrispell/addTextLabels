@@ -4,14 +4,16 @@
 \alias{calculateLabelHeightsAndWidths}
 \title{Calculate the heights and widths of the labels in the current plotting window}
 \usage{
-calculateLabelHeightsAndWidths(labels, cex, polygonAdded)
+calculateLabelHeightsAndWidths(labels, cex, heightPad, widthPad)
 }
 \arguments{
 \item{labels}{A vector of the labels}
 
 \item{cex}{The number used to scale the size of the label and therefore its height and width}
 
-\item{polygonAdded}{A logical (TRUE/FALSE) variable to indicate whether polygons are going to be plotted. If they are widths and heights are made slightly larger}
+\item{heightPad}{Multiplyer for label height should added to label to be used to pad height}
+
+\item{widthPad}{Multiplyer for label width should added to label to be used to pad width}
 }
 \value{
 Returns a list containing the heights and widths of the labels provided

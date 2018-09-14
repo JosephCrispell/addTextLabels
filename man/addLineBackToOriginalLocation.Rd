@@ -5,7 +5,7 @@
 \title{Plot line from new alternative location back to original}
 \usage{
 addLineBackToOriginalLocation(altX, altY, x, y, label, cex, col, lty = 1,
-  lwd = 1)
+  lwd = 1, heightPad, widthPad)
 }
 \arguments{
 \item{altX}{The X coordinate of new location}
@@ -25,6 +25,10 @@ addLineBackToOriginalLocation(altX, altY, x, y, label, cex, col, lty = 1,
 \item{lty}{A number detailing the type of line to be plotted. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash. Defaults to 1}
 
 \item{lwd}{A number to scale the size of plotted line. Defaults to 1}
+
+\item{heightPad}{Multiplyer for label height should added to label to be used to pad height}
+
+\item{widthPad}{Multiplyer for label width should added to label to be used to pad width}
 }
 \description{
 Function used by \code{addTextLabels()}

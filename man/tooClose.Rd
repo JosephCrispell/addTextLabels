@@ -4,7 +4,7 @@
 \alias{tooClose}
 \title{Checks whether a point is too close to any others}
 \usage{
-tooClose(xCoords, yCoords, index, textHeight, textWidth)
+tooClose(xCoords, yCoords, index, textHeights, textWidths)
 }
 \arguments{
 \item{xCoords}{A vector containing the X coordinates for labels}
@@ -13,9 +13,9 @@ tooClose(xCoords, yCoords, index, textHeight, textWidth)
 
 \item{index}{The index of the point of interest}
 
-\item{textHeight}{The height of the label to be plotted at the point of interest}
+\item{textHeights}{The heights of the labels to be plotted}
 
-\item{textWidth}{The width of the label to be plotted at the point of interest}
+\item{textWidths}{The widths of the labels to be plotted}
 }
 \value{
 Returns a logical variable to indicate whether the point of interest was too close to any points
