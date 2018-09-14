@@ -4,6 +4,8 @@
 ## Licence: GPL-3
 An R package for add non-overlapping labels onto existing R plot
 
+# CURRENTLY BROKEN :-( WORKING ON IT!!
+
 Package can be directly installed into R using:
 ```
 install.packages("devtools")
