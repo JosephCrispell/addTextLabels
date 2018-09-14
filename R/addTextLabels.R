@@ -87,8 +87,8 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   altXs <- output[["AltX"]]
   altYs <- output[["AltY"]]
   
-  # Calculate the distance between the actual and alternative points
-  distances <- euclideanDistances(x1s=xCoords, y1s=yCoords, x2s=altXs, y2s=altYs)
+  # Calculate the distance between the actual and alternative points - rescale X axis remove axis range bias
+  distances <- euclideanDistancesWithRescaledXAxis(x1s=xCoords, y1s=yCoords, x2s=altXs, y2s=altYs)
   
   ##############################################################
   # Add labels to plot assigning new locations where necessary #
@@ -96,7 +96,7 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   
   # Plot the point label
   for(i in 1:length(xCoords)){
-    
+
     # Is the current point too close to others?
     if((avoidPoints == TRUE && length(altXs) != 0) || 
        (tooClose(xCoords, yCoords, i, textHeights, textWidths) == TRUE && length(altXs) != 0)){
@@ -108,7 +108,7 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
       addLineBackToOriginalLocation(altX=altXs[newLocationIndex], altY=altYs[newLocationIndex],
                                     x=xCoords[i], y=yCoords[i], label=labels[i], cex=cex, col=col.line,
                                     lty=lty, lwd=lwd, heightPad=heightPad, widthPad=widthPad)
-        
+      
       # Add label
       addLabel(x=altXs[newLocationIndex], y=altYs[newLocationIndex], label=labels[i], cex=cex, col=col.label,
                bg=col.background, border=border, heightPad=heightPad, widthPad=widthPad)
@@ -155,8 +155,8 @@ addLineBackToOriginalLocation <- function(altX, altY, x, y, label, cex, col, lty
   labelWidth <- strwidth(label, cex=cex)
   
   # Calculate amount outer left/right and above/below
-  xHalf <- strwidth(label) * (0.5 + (0.5 * widthPad))
-  yHalf <- strheight(label) * (0.5 + (0.5 * heightPad))
+  xHalf <- labelWidth * (0.5 + (0.5 * widthPad))
+  yHalf <- labelHeight * (0.5 + (0.5 * heightPad))
   
   # Create a set of points marking the boundaries of the label
   xMarkers <- c(seq(from=altX - xHalf, to=altX + xHalf, by=0.05*labelWidth), altX + xHalf)
@@ -267,16 +267,16 @@ generateAlternativeLocations <- function(xCoords, yCoords, textHeights, textWidt
 #' @keywords internal
 addLabel <- function(x, y, label, cex, col, bg, border, heightPad, widthPad){
   
-  # Calculate the height and width of the label
-  labelHeight <- strheight(label, cex=cex)
-  labelWidth <- strwidth(label, cex=cex)
-  
   # Add a background polygon - if requested
   if(is.null(bg) == FALSE){
     
+    # Calculate the height and width of the label
+    labelHeight <- strheight(label, cex=cex)
+    labelWidth <- strwidth(label, cex=cex)
+    
     # Calculate amount outer left/right and above/below
-    xHalf <- strwidth(label) * (0.5 + (0.5 * widthPad))
-    yHalf <- strheight(label) * (0.5 + (0.5 * heightPad))
+    xHalf <- labelWidth * (0.5 + (0.5 * widthPad))
+    yHalf <- labelHeight * (0.5 + (0.5 * heightPad))
     
     # Plot the background polygon
     polygon(x=c(x - xHalf, x - xHalf, x + xHalf, x + xHalf),
@@ -407,7 +407,7 @@ tooClose <- function(xCoords, yCoords, index, textHeights, textWidths){
   return(result) 
 }
 
-#' Calculate the euclidean distance between two sets of points
+#' Calculate the euclidean distance between two sets of points. Note: Rescales X axis to match scale of Y
 #'
 #' Function used by \code{addTextLabels()}
 #' @param x1s A vector X coordinates for the first set of points
@@ -416,7 +416,21 @@ tooClose <- function(xCoords, yCoords, index, textHeights, textWidths){
 #' @param y2s A vector Y coordinates for the second set of points
 #' @keywords internal
 #' @return Returns the distances between the sets of points provided
-euclideanDistances <- function(x1s, y1s, x2s, y2s){
+euclideanDistancesWithRescaledXAxis <- function(x1s, y1s, x2s, y2s){
+  
+  # Get the axis limits
+  axisLimits <- par("usr")
+  
+  # Calculate the axis ranges
+  xRange = axisLimits[2] - axisLimits[1]
+  yRange = axisLimits[4] - axisLimits[3]
+  
+  # Calculate the xFactor
+  xFactor <- yRange / xRange
+  
+  # Correct for the axes having different ranges - scale the X axis to match the scale of Y axis
+  x1s <- x1s * xFactor
+  x2s <- x2s * xFactor
   
   # Initialise a matrix to store distances - note that it is non-symmetric!!!
   distances <- matrix(NA, nrow=length(x1s), ncol=length(x2s))
@@ -444,5 +458,5 @@ euclideanDistances <- function(x1s, y1s, x2s, y2s){
 #' @keywords internal
 #' @return Returns the distance between the points provided
 euclideanDistance <- function(x1, y1, x2, y2){
-  return(sqrt(sum((x1 - x2)^2 + (y1 - y2)^2)))
+  return(sqrt((x1 - x2)^2 + (y1 - y2)^2))
 }
