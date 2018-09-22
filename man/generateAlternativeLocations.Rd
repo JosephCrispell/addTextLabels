@@ -4,19 +4,7 @@
 \alias{generateAlternativeLocations}
 \title{Generate a set of alternative locations where labels can be plotted if they overlap with another label}
 \usage{
-generateAlternativeLocations(xCoords, yCoords, textHeights, textWidths,
-  cex)
-}
-\arguments{
-\item{xCoords}{A vector containing the X coordinates for labels}
-
-\item{yCoords}{A vector containing the Y coordinates for labels}
-
-\item{textHeights}{The heights of the labels in the current plotting window. Calculated by \code{calculateLabelHeightsAndWidths}}
-
-\item{textWidths}{The widths of the labels in the current plotting window. Calculated by \code{calculateLabelHeightsAndWidths}}
-
-\item{cex}{The number used to scale the size of the label}
+generateAlternativeLocations()
 }
 \value{
 Returns a list containing the coordinates of the alternative locations

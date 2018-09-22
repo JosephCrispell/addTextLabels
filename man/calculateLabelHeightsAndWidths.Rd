@@ -4,10 +4,10 @@
 \alias{calculateLabelHeightsAndWidths}
 \title{Calculate the heights and widths of the labels in the current plotting window}
 \usage{
-calculateLabelHeightsAndWidths(labels, cex, heightPad, widthPad)
+calculateLabelHeightsAndWidths(pointInfo, cex, heightPad, widthPad)
 }
 \arguments{
-\item{labels}{A vector of the labels}
+\item{pointInfo}{A list storing the coordinates and labels of input points}
 
 \item{cex}{The number used to scale the size of the label and therefore its height and width}
 
@@ -16,7 +16,7 @@ calculateLabelHeightsAndWidths(labels, cex, heightPad, widthPad)
 \item{widthPad}{Multiplyer for label width should added to label to be used to pad width}
 }
 \value{
-Returns a list containing the heights and widths of the labels provided
+Returns a list storing the coordinates, labels, and the heights and widths of the labels, for input points
 }
 \description{
 Function used by \code{addTextLabels()}

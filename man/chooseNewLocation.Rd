@@ -4,25 +4,19 @@
 \alias{chooseNewLocation}
 \title{A function to choose (from the alternative locations) a new location for a label to be plotted at}
 \usage{
-chooseNewLocation(xCoords, yCoords, index, altXs, altYs, distances,
-  textHeights, textWidths)
+chooseNewLocation(pointInfo, index, alternativeLocations, distances,
+  plottedLabelInfo)
 }
 \arguments{
-\item{xCoords}{The X coordinates of actual points}
-
-\item{yCoords}{The Y coordinates of actual points}
+\item{pointInfo}{A list storing the information for the input points}
 
 \item{index}{The index of the point of interest}
 
-\item{altXs}{A vector of X coordinates for alternative locations}
+\item{alternativeLocations}{The coordinates of the alternative locations}
 
-\item{altYs}{A vector of Y coordinates for alternative locations}
+\item{distances}{The distances between the alternative locations and the input points}
 
-\item{distances}{The distances between the actual and alternative locations}
-
-\item{textHeights}{The heights of the labels to be plotted}
-
-\item{textWidths}{The widths of the labels to be plotted}
+\item{plottedLabelInfo}{The coordinates and label information about the locations where a label has already plotted}
 }
 \value{
 Returns the index of the chosen alternative location

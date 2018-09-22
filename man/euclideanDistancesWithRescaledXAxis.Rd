@@ -4,16 +4,12 @@
 \alias{euclideanDistancesWithRescaledXAxis}
 \title{Calculate the euclidean distance between two sets of points. Note: Rescales X axis to match scale of Y}
 \usage{
-euclideanDistancesWithRescaledXAxis(x1s, y1s, x2s, y2s)
+euclideanDistancesWithRescaledXAxis(pointInfo, alternativeLocations)
 }
 \arguments{
-\item{x1s}{A vector X coordinates for the first set of points}
+\item{pointInfo}{A list storing the information for the input points}
 
-\item{y1s}{A vector Y coordinates for the first set of points}
-
-\item{x2s}{A vector X coordinates for the second set of points}
-
-\item{y2s}{A vector Y coordinates for the second set of points}
+\item{alternativeLocations}{A list storing the coordinates of the alternative locations}
 }
 \value{
 Returns the distances between the sets of points provided

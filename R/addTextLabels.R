@@ -149,6 +149,16 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   }
 }
 
+#' Add the information associated with a text label that has been plotted
+#'
+#' Function used by \code{addTextLabels()}
+#' @param x X coordinate of point of interest
+#' @param y Y coodrinate of point of interest
+#' @param height The height of the label associated with the point of interest
+#' @param width The width of the label associated with the point of interest
+#' @param plottedLabelInfo The coordinates and label information about the locations where a label has already plotted
+#' @keywords internal
+#' @return Returns a list containing information for all the plotted labels, included the one just added
 addPlottedLabel <- function(x, y, height, width, plottedLabelInfo){
   
   plottedLabelInfo$X[plottedLabelInfo$N + 1] <- x
@@ -171,12 +181,12 @@ addPlottedLabel <- function(x, y, height, width, plottedLabelInfo){
 #' @param label The label to be plotted. Required to work out when line ends
 #' @param cex The number used to scale the size of the label. Required to work out when line ends
 #' @param col Colour of line to be plotted
-#' @param lty A number detailing the type of line to be plotted. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash. Defaults to 1
-#' @param lwd A number to scale the size of plotted line. Defaults to 1
+#' @param lty A number detailing the type of line to be plotted. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash.
+#' @param lwd A number to scale the size of plotted line.
 #' @param heightPad Multiplyer for label height should added to label to be used to pad height
 #' @param widthPad Multiplyer for label width should added to label to be used to pad width
 #' @keywords internal
-addLineBackToOriginalLocation <- function(altX, altY, x, y, label, cex, col, lty=1, lwd=1, heightPad, widthPad){
+addLineBackToOriginalLocation <- function(altX, altY, x, y, label, cex, col, lty, lwd, heightPad, widthPad){
   
   # Calculate the label width and height
   labelHeight <- strheight(label, cex=cex)
@@ -215,8 +225,8 @@ calculateLabelHeightsAndWidths <- function(pointInfo, cex, heightPad, widthPad){
   
   # Add padding to widths and heights
   # Note multiplies padding by 2 - stops background polygons being directly adjacent
-  pointInfo[["Heights"]] <- textHeights + (2 * heightPad *textHeights)
-  pointInfo[["Widths"]] <- textWidths + (2 * widthPad *textWidths)
+  pointInfo[["Heights"]] <- textHeights + (2 * heightPad * textHeights)
+  pointInfo[["Widths"]] <- textWidths + (2 * widthPad * textWidths)
 
   return(pointInfo)
 }
@@ -361,7 +371,7 @@ chooseNewLocation <- function(pointInfo, index, alternativeLocations, distances,
     altY <- alternativeLocations$Y[i]
 
     # Check current alternative location isn't too close to plotted labels or the plotted input points
-    if(overlapsWithPlottedPoints(x=altX, y=altX, height=height, width=width, pointInfo=pointInfo) == FALSE &&
+    if(overlapsWithPlottedPoints(x=altX, y=altY, height=height, width=width, pointInfo=pointInfo) == FALSE &&
        tooClose(x=altX, y=altY, height=height, width=width, plottedLabelInfo) == FALSE){
       break
     }
@@ -370,6 +380,16 @@ chooseNewLocation <- function(pointInfo, index, alternativeLocations, distances,
   return(indexOfSelectedAlternativeLocation)
 }
 
+#' Checks whether a point is too close to any of the plotted points
+#'
+#' Function used by \code{addTextLabels()}
+#' @param x X coordinate of point of interest
+#' @param y Y coodrinate of point of interest
+#' @param height The height of the label associated with the point of interest
+#' @param width The width of the label associated with the point of interest
+#' @param pointInfo A list storing the information for the input points - that have been plotted
+#' @keywords internal
+#' @return Returns a logical variable to indicate whether the point of interest was too close to any plotted points
 overlapsWithPlottedPoints <- function(x, y, height, width, pointInfo){
   
   result <- FALSE
@@ -384,14 +404,16 @@ overlapsWithPlottedPoints <- function(x, y, height, width, pointInfo){
   return(result)
 }
 
-#' Checks whether a point is too close to any others
+#' Checks whether a point is too close to any of the plotted labels
 #'
 #' Function used by \code{addTextLabels()}
-#' @param pointInfo A list storing the information for the input points
-#' @param index The index of the point of interest
+#' @param x X coordinate of point of interest
+#' @param y Y coodrinate of point of interest
+#' @param height The height of the label associated with the point of interest
+#' @param width The width of the label associated with the point of interest
 #' @param plottedLabelInfo The coordinates and label information about the locations where a label has already plotted
 #' @keywords internal
-#' @return Returns a logical variable to indicate whether the point of interest was too close to any points
+#' @return Returns a logical variable to indicate whether the point of interest was too close to any plotted labels
 tooClose <- function(x, y, height, width, plottedLabelInfo){
 
   # Check if the current point is too close to any of the plotted locations
