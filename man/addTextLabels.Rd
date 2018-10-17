@@ -6,7 +6,7 @@
 \usage{
 addTextLabels(xCoords, yCoords, labels, cex = 1, col.label = "red",
   col.line = "black", col.background = NULL, lty = 1, lwd = 1,
-  border = NA, avoidPoints = TRUE)
+  border = NA, avoidPoints = TRUE, keepLabelsInside = TRUE)
 }
 \arguments{
 \item{xCoords}{A vector containing the X coordinates for labels}
@@ -29,7 +29,9 @@ addTextLabels(xCoords, yCoords, labels, cex = 1, col.label = "red",
 
 \item{border}{The colour of the border to be plotted around the polygon. Defaults to NA - won't be plotted}
 
-\item{avoidPoints}{A logical variable indicating whether labels shouldn't be plotted on top of points}
+\item{avoidPoints}{A logical variable indicating whether labels shouldn't be plotted on top of points. Defaults to TRUE}
+
+\item{keepLabelsInside}{A logical variable indicating whether the labels shouldn't be plotted outside of plotting region. Defaults to TRUE}
 }
 \description{
 This function is similar to the \code{text()} function but it will attempt to re-locate labels that will overlap

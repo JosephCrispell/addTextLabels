@@ -38,7 +38,8 @@
 #' @param lty A number detailing the type of line to plot from relocated labels to original location. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash. Defaults to 1
 #' @param lwd A number to scale the size of line from relocated labels to original location. Defaults to 1
 #' @param border The colour of the border to be plotted around the polygon. Defaults to NA - won't be plotted
-#' @param avoidPoints A logical variable indicating whether labels shouldn't be plotted on top of points
+#' @param avoidPoints A logical variable indicating whether labels shouldn't be plotted on top of points. Defaults to TRUE
+#' @param keepLabelsInside A logical variable indicating whether the labels shouldn't be plotted outside of plotting region. Defaults to TRUE
 #' @keywords text label plot
 #' @export
 #' @examples 
@@ -61,7 +62,7 @@
 #' plot(x=coords$X, y=coords$Y, pch=19, bty="n", xaxt="n", yaxt="n", col="red", xlab="X", ylab="Y")
 #' addTextLabels(coords$X, coords$Y, coords$Name, cex=1, col.background=rgb(0,0,0, 0.75), col.label="white")
 addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.line="black", col.background=NULL,
-                          lty=1, lwd=1, border=NA, avoidPoints=TRUE){
+                          lty=1, lwd=1, border=NA, avoidPoints=TRUE, keepLabelsInside=TRUE){
   
   ###############################
   # Store the point information #
@@ -72,7 +73,7 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
 
   # Set the amount to pad onto height and width
   heightPad <- 0.5
-  widthPad <- 0.02
+  widthPad <- 0.04
   if(is.null(col.background)){
     heightPad <- 0
     widthPad <- 0
@@ -103,6 +104,9 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   # Add labels to plot assigning new locations where necessary #
   ##############################################################
   
+  # Get the axis limits of the current plot
+  axisLimits <- par("usr")
+  
   # Plot the point label
   for(i in seq_len(pointInfo$N)){
 
@@ -113,11 +117,11 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
     height <- pointInfo$Heights[i]
     width <- pointInfo$Widths[i]
     
+    # Get a new location
+    newLocationIndex <- chooseNewLocation(pointInfo, i, alternativeLocations, distances, plottedLabelInfo, axisLimits, keepLabelsInside)
+    
     # Is the current point too close to others?
-    if(alternativeLocations$N != 0 && (avoidPoints == TRUE || tooClose(x, y, height, width, plottedLabelInfo))){
-
-      # Get a new location
-      newLocationIndex <- chooseNewLocation(pointInfo, i, alternativeLocations, distances, plottedLabelInfo)
+    if(alternativeLocations$N != 0 && newLocationIndex != -1 && (avoidPoints == TRUE || tooClose(x, y, height, width, plottedLabelInfo))){
 
       # Get the coordinates for the chosen alternate location
       altX <- alternativeLocations$X[newLocationIndex]
@@ -134,6 +138,12 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
       # Append the plotted label information
       plottedLabelInfo <- addPlottedLabel(x=altX, y=altY, height=height, width=width,
                                           plottedLabelInfo=plottedLabelInfo)
+      
+      # Remove the alternative plotting location used
+      alternativeLocations$X <- alternativeLocations$X[-newLocationIndex]
+      alternativeLocations$Y <- alternativeLocations$Y[-newLocationIndex]
+      alternativeLocations$N <- alternativeLocations$N - 1
+      distances <- distances[, -newLocationIndex]
         
     }else{
       
@@ -341,9 +351,11 @@ removeLocationAndThoseCloseToItFromAlternatives <- function(altXs, altYs, index,
 #' @param alternativeLocations The coordinates of the alternative locations
 #' @param distances The distances between the alternative locations and the input points
 #' @param plottedLabelInfo The coordinates and label information about the locations where a label has already plotted
+#' @param axisLimits The limits of the X and Y axis: (\code{c(xMin, xMax, yMin, yMax)})
+#' @param keepLabelsInside A logical variable indicating whether the labels shouldn't be plotted outside of plotting region
 #' @keywords internal
 #' @return Returns the index of the chosen alternative location
-chooseNewLocation <- function(pointInfo, index, alternativeLocations, distances, plottedLabelInfo){
+chooseNewLocation <- function(pointInfo, index, alternativeLocations, distances, plottedLabelInfo, axisLimits, keepLabelsInside){
   
   # points(alternativeLocations$X, alternativeLocations$Y, pch=19, xpd=TRUE,
   #        col=rgb(1,0,0, distances[index, ] / max(distances[index, ])))
@@ -363,16 +375,17 @@ chooseNewLocation <- function(pointInfo, index, alternativeLocations, distances,
   # Examine each of the alternate locations in order
   for(i in orderedAlternateLocationIndices){
     
-    # Store the current index
-    indexOfSelectedAlternativeLocation <- i
-    
     # Get the coordinates of the current alternative location
     altX <- alternativeLocations$X[i]
     altY <- alternativeLocations$Y[i]
 
-    # Check current alternative location isn't too close to plotted labels or the plotted input points
+    # Check current alternative location isn't too close to plotted labels or the plotted input points or label will overlap with plot edges
     if(overlapsWithPlottedPoints(x=altX, y=altY, height=height, width=width, pointInfo=pointInfo) == FALSE &&
-       tooClose(x=altX, y=altY, height=height, width=width, plottedLabelInfo) == FALSE){
+       tooClose(x=altX, y=altY, height=height, width=width, plottedLabelInfo) == FALSE && 
+       (keepLabelsInside == FALSE || outsidePlot(x=altX, y=altY, height=height, width=width, axisLimits=axisLimits) == FALSE)){
+      
+      # Store the current index
+      indexOfSelectedAlternativeLocation <- i
       break
     }
   }
@@ -402,6 +415,34 @@ overlapsWithPlottedPoints <- function(x, y, height, width, pointInfo){
   }
   
   return(result)
+}
+
+#' Checks whether adding a label at the current point will ending up being outside of the plotting window
+#'
+#' Function used by \code{addTextLabels()}
+#' @param x X coordinate of point of interest
+#' @param y Y coodrinate of point of interest
+#' @param height The height of the label associated with the point of interest
+#' @param width The width of the label associated with the point of interest
+#' @param axisLimits The limits of the X and Y axis: (\code{c(xMin, xMax, yMin, yMax)})
+#' @keywords internal
+#' @return Returns a logical variable to indicate whether the point of interest was too close to any plotted labels
+outsidePlot <- function(x, y, height, width, axisLimits){
+  
+  # Calculate half width and height 
+  halfWidth <- 0.5 * width
+  halfHeight <- 0.5* height
+  
+  # Check if adding a label at the current point would overlap with the plotting window edges
+  result <- FALSE
+  if(x + halfWidth > axisLimits[2] ||
+     x - halfWidth < axisLimits[1] ||
+     y + halfHeight > axisLimits[4] ||
+     y - halfHeight < axisLimits[3]){
+    result <- TRUE
+  }
+  
+  return(result) 
 }
 
 #' Checks whether a point is too close to any of the plotted labels

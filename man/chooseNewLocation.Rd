@@ -5,7 +5,7 @@
 \title{A function to choose (from the alternative locations) a new location for a label to be plotted at}
 \usage{
 chooseNewLocation(pointInfo, index, alternativeLocations, distances,
-  plottedLabelInfo)
+  plottedLabelInfo, axisLimits, keepLabelsInside)
 }
 \arguments{
 \item{pointInfo}{A list storing the information for the input points}
@@ -17,6 +17,10 @@ chooseNewLocation(pointInfo, index, alternativeLocations, distances,
 \item{distances}{The distances between the alternative locations and the input points}
 
 \item{plottedLabelInfo}{The coordinates and label information about the locations where a label has already plotted}
+
+\item{axisLimits}{The limits of the X and Y axis: (\code{c(xMin, xMax, yMin, yMax)})}
+
+\item{keepLabelsInside}{A logical variable indicating whether the labels shouldn't be plotted outside of plotting region}
 }
 \value{
 Returns the index of the chosen alternative location
