@@ -64,6 +64,45 @@
 addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.line="black", col.background=NULL,
                           lty=1, lwd=1, border=NA, avoidPoints=TRUE, keepLabelsInside=TRUE){
   
+  #######################
+  # Get the axis limits #
+  #######################
+  
+  # Get the axis limits
+  axisLimits <- par("usr")
+  
+  ############################
+  # Check if axes are logged #
+  ############################
+  
+  # Check X axis
+  xAxisLogged <- FALSE
+  if(par("xlog")){
+    
+    # Note that X axis was logged
+    xAxisLogged <- TRUE
+    
+    # Log the X coordinates
+    xCoords <- log10(xCoords)
+    
+    # Reset the X axis logged flag - fools points and polygon commands below
+    par(xlog=FALSE)
+  }
+  
+  # Check Y axis
+  yAxisLogged <- FALSE
+  if(par("ylog")){
+    
+    # Note that Y axis was logged
+    yAxisLogged <- TRUE
+    
+    # Log the Y coordinates
+    yCoords <- log10(yCoords)
+    
+    # Reset the Y axis logged flag - fools points and polygon commands below
+    par(ylog=FALSE)
+  }
+  
   ###############################
   # Store the point information #
   ###############################
@@ -88,10 +127,10 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   ###########################################
   
   # Generate the alternative locations
-  alternativeLocations <- generateAlternativeLocations()
+  alternativeLocations <- generateAlternativeLocations(axisLimits)
 
   # Calculate the distance between the actual and alternative points - rescale X axis remove axis range bias
-  distances <- euclideanDistancesWithRescaledXAxis(pointInfo, alternativeLocations)
+  distances <- euclideanDistancesWithRescaledXAxis(pointInfo, alternativeLocations, axisLimits)
   
   ###############################################################
   # Create a list to store the information about plotted points #
@@ -103,10 +142,7 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   ##############################################################
   # Add labels to plot assigning new locations where necessary #
   ##############################################################
-  
-  # Get the axis limits of the current plot
-  axisLimits <- par("usr")
-  
+
   # Plot the point label
   for(i in seq_len(pointInfo$N)){
 
@@ -146,7 +182,7 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
       distances <- distances[, -newLocationIndex]
         
     }else{
-      
+
       # Add label
       addLabel(x=x, y=y, label=label,
                cex=cex, col=col.label, bg=col.background, border=border,
@@ -157,6 +193,14 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
                                           plottedLabelInfo=plottedLabelInfo)
     }
   }
+  
+  #####################################################################################
+  # Return axes logged flags to original state - for if person makes any future plots #
+  #####################################################################################
+  
+  par(xlog=xAxisLogged)
+  par(ylog=yAxisLogged)
+  
 }
 
 #' Add the information associated with a text label that has been plotted
@@ -230,30 +274,32 @@ addLineBackToOriginalLocation <- function(altX, altY, x, y, label, cex, col, lty
 calculateLabelHeightsAndWidths <- function(pointInfo, cex, heightPad, widthPad){
   
   # Get the text label heights and lengths
-  textHeights <- strheight(pointInfo$Labels) * cex
-  textWidths <- strwidth(pointInfo$Labels) * cex
+  textHeights <- strheight(pointInfo$Labels)
+  textWidths <- strwidth(pointInfo$Labels)
+
+  # Multiply by cex
+  textHeights <- textHeights * cex
+  textWidths <- textWidths * cex
   
   # Add padding to widths and heights
   # Note multiplies padding by 2 - stops background polygons being directly adjacent
   pointInfo[["Heights"]] <- textHeights + (2 * heightPad * textHeights)
   pointInfo[["Widths"]] <- textWidths + (2 * widthPad * textWidths)
-
+  
   return(pointInfo)
 }
 
 #' Generate a set of alternative locations where labels can be plotted if they overlap with another label
 #'
 #' Function used by \code{addTextLabels()}
+#' @param axisLimits The limits of the X and Y axis: (\code{c(xMin, xMax, yMin, yMax)})
 #' @keywords internal
 #' @return Returns a list containing the coordinates of the alternative locations
-generateAlternativeLocations <- function(){
+generateAlternativeLocations <- function(axisLimits){
   
   # Initialise a list to store the alternative locations
   alternativeLocations <- list("X"=c(), "Y"=c())
-  
-  # Get the axis limits
-  axisLimits <- par("usr")
-  
+
   # Define the spacer for each axis
   spacerX <- 0.01 * (axisLimits[2] - axisLimits[1])
   spacerY <- 0.01 * (axisLimits[4] - axisLimits[3])
@@ -266,7 +312,7 @@ generateAlternativeLocations <- function(){
       alternativeLocations$Y[length(alternativeLocations$Y) + 1] <- j
     }
   }
-  # points(alternativeLocations$X, alternativeLocations$Y, col=rgb(0,0,0, 0.5), pch=20, xpd=TRUE)
+  #points(alternativeLocations$X, alternativeLocations$Y, col=rgb(0,0,0, 0.5), pch=20, xpd=TRUE)
 
   # Note the number of alternative locations created
   alternativeLocations[["N"]] <- length(alternativeLocations$X)
@@ -457,6 +503,14 @@ outsidePlot <- function(x, y, height, width, axisLimits){
 #' @return Returns a logical variable to indicate whether the point of interest was too close to any plotted labels
 tooClose <- function(x, y, height, width, plottedLabelInfo){
 
+  # Check if logged axes were used
+  if(par("xlog")){
+    x <- log10(x)
+  }
+  if(par("ylog")){
+    y <- log10(y)
+  }
+  
   # Check if the current point is too close to any of the plotted locations
   result <- FALSE
   for(i in seq_len(plottedLabelInfo$N)){
@@ -476,12 +530,10 @@ tooClose <- function(x, y, height, width, plottedLabelInfo){
 #' Function used by \code{addTextLabels()}
 #' @param pointInfo A list storing the information for the input points
 #' @param alternativeLocations A list storing the coordinates of the alternative locations
+#' @param axisLimits The limits of the X and Y axis: (\code{c(xMin, xMax, yMin, yMax)})
 #' @keywords internal
 #' @return Returns the distances between the sets of points provided
-euclideanDistancesWithRescaledXAxis <- function(pointInfo, alternativeLocations){
-  
-  # Get the axis limits
-  axisLimits <- par("usr")
+euclideanDistancesWithRescaledXAxis <- function(pointInfo, alternativeLocations, axisLimits){
   
   # Calculate the axis ranges
   xRange = axisLimits[2] - axisLimits[1]

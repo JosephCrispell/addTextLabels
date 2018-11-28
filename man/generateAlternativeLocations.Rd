@@ -4,7 +4,10 @@
 \alias{generateAlternativeLocations}
 \title{Generate a set of alternative locations where labels can be plotted if they overlap with another label}
 \usage{
-generateAlternativeLocations()
+generateAlternativeLocations(axisLimits)
+}
+\arguments{
+\item{axisLimits}{The limits of the X and Y axis: (\code{c(xMin, xMax, yMin, yMax)})}
 }
 \value{
 Returns a list containing the coordinates of the alternative locations
