@@ -32,12 +32,12 @@
 #' @param yCoords A vector containing the Y coordinates for labels
 #' @param labels A vector containing the labels to be plotted
 #' @param cex A number to scale the size of the plotted labels. Defaults to 1
-#' @param col.label The colour of the plotted labels. Defaults to "red"
-#' @param col.line The colour of the line to plot from relocated labels to original location. Defaults to "black"
-#' @param col.background An optional colour for a background polygon plotted behind labels. Defaults to NULL - won't be plotted
-#' @param lty A number detailing the type of line to plot from relocated labels to original location. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash. Defaults to 1
-#' @param lwd A number to scale the size of line from relocated labels to original location. Defaults to 1
-#' @param border The colour of the border to be plotted around the polygon. Defaults to NA - won't be plotted
+#' @param col.label The colour of the plotted labels. Defaults to "red". Multiple colours can be provided. If more colours than labels provided colours will be recycled.
+#' @param col.line The colour of the line to plot from relocated labels to original location. Defaults to "black". Multiple colours can be provided. If more colours than labels provided colours will be recycled.
+#' @param col.background An optional colour for a background polygon plotted behind labels. Defaults to NULL - won't be plotted. Multiple colours can be provided. If more colours than labels provided colours will be recycled.
+#' @param lty A number detailing the type of line to plot from relocated labels to original location. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash. Defaults to 1. Multiple line types can be provided. If more options than labels provided types will be recycled.
+#' @param lwd A number to scale the size of line from relocated labels to original location. Defaults to 1. Multiple line widths can be provided. If more options than labels provided widths will be recycled.
+#' @param border The colour of the border to be plotted around the polygon. Defaults to NA - won't be plotted. Multiple colours can be provided. If more colours than labels provided colours will be recycled.
 #' @param avoidPoints A logical variable indicating whether labels shouldn't be plotted on top of points. Defaults to TRUE
 #' @param keepLabelsInside A logical variable indicating whether the labels shouldn't be plotted outside of plotting region. Defaults to TRUE
 #' @keywords text label plot
@@ -146,6 +146,16 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   # Plot the point label
   for(i in seq_len(pointInfo$N)){
 
+    # Set the colours for plotting the label - allows multiple colours and cycling through colours
+    labelColour <- setOption(options=col.label, index=i)
+    backgroundColour <- setOption(options=col.background, index=i)
+    borderColour <- setOption(options=border, index=i)
+    
+    # Set the line characteristics
+    lineColour <- setOption(options=col.line, index=i)
+    lineType <- setOption(options=lty, index=i)
+    lineWidth <- setOption(options=lwd, index=i)
+    
     # Get the information for the current point
     x <- pointInfo$X[i]
     y <- pointInfo$Y[i]
@@ -165,11 +175,12 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
       
       # Add line back to previous location
       addLineBackToOriginalLocation(altX=altX, altY=altY, x=x, y=y, label=label,
-                                    cex=cex, col=col.line, lty=lty, lwd=lwd, heightPad=heightPad, widthPad=widthPad)
+                                    cex=cex, col=lineColour, lty=lineType, lwd=lineWidth, heightPad=heightPad,
+                                    widthPad=widthPad)
       
       # Add label
       addLabel(x=altX, y=altY, label=label,
-               cex=cex, col=col.label, bg=col.background, border=border, heightPad=heightPad, widthPad=widthPad)
+               cex=cex, col=labelColour, bg=backgroundColour, border=borderColour, heightPad=heightPad, widthPad=widthPad)
         
       # Append the plotted label information
       plottedLabelInfo <- addPlottedLabel(x=altX, y=altY, height=height, width=width,
@@ -185,7 +196,7 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
 
       # Add label
       addLabel(x=x, y=y, label=label,
-               cex=cex, col=col.label, bg=col.background, border=border,
+               cex=cex, col=labelColour, bg=backgroundColour, border=borderColour,
                heightPad=heightPad, widthPad=widthPad)
       
       # Append the plotted label information
@@ -201,6 +212,32 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
   par(xlog=xAxisLogged)
   par(ylog=yAxisLogged)
   
+}
+
+#' A function to assign value if multiple options are available, can recycle if index is > number of options available
+#'
+#' Function used by \code{addTextLabels()}
+#' @param colours A single option of vector of options
+#' @param index The current index of a label
+#' @keywords internal
+#' @return Returns the selected option based upon the index provided
+setOption <- function(options, index){
+  
+  # Calculate modulus - the remainder when the index is divided by the number of options provided
+  modulus <- index %% length(options)
+      
+  # Check if modulus non-zero - there is a remainder
+  if(modulus != 0){
+    
+    # Assign option using modulus as index
+    option <- options[modulus]
+    
+  # If no remainder, then index must be the length of the options vector
+  }else{
+    option <- options[length(options)]
+  }
+  
+  return(option)
 }
 
 #' Add the information associated with a text label that has been plotted

@@ -17,17 +17,17 @@ addTextLabels(xCoords, yCoords, labels, cex = 1, col.label = "red",
 
 \item{cex}{A number to scale the size of the plotted labels. Defaults to 1}
 
-\item{col.label}{The colour of the plotted labels. Defaults to "red"}
+\item{col.label}{The colour of the plotted labels. Defaults to "red". Multiple colours can be provided. If more colours than labels provided colours will be recycled.}
 
-\item{col.line}{The colour of the line to plot from relocated labels to original location. Defaults to "black"}
+\item{col.line}{The colour of the line to plot from relocated labels to original location. Defaults to "black". Multiple colours can be provided. If more colours than labels provided colours will be recycled.}
 
-\item{col.background}{An optional colour for a background polygon plotted behind labels. Defaults to NULL - won't be plotted}
+\item{col.background}{An optional colour for a background polygon plotted behind labels. Defaults to NULL - won't be plotted. Multiple colours can be provided. If more colours than labels provided colours will be recycled.}
 
-\item{lty}{A number detailing the type of line to plot from relocated labels to original location. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash. Defaults to 1}
+\item{lty}{A number detailing the type of line to plot from relocated labels to original location. 0: blank, 1: solid, 2: dashed, 3: dotted, 4: dotdash, 5: longdash, and 6: twodash. Defaults to 1. Multiple line types can be provided. If more options than labels provided types will be recycled.}
 
-\item{lwd}{A number to scale the size of line from relocated labels to original location. Defaults to 1}
+\item{lwd}{A number to scale the size of line from relocated labels to original location. Defaults to 1. Multiple line widths can be provided. If more options than labels provided widths will be recycled.}
 
-\item{border}{The colour of the border to be plotted around the polygon. Defaults to NA - won't be plotted}
+\item{border}{The colour of the border to be plotted around the polygon. Defaults to NA - won't be plotted. Multiple colours can be provided. If more colours than labels provided colours will be recycled.}
 
 \item{avoidPoints}{A logical variable indicating whether labels shouldn't be plotted on top of points. Defaults to TRUE}
 
