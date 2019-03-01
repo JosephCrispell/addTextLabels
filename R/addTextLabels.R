@@ -223,18 +223,22 @@ addTextLabels <- function(xCoords, yCoords, labels, cex=1, col.label="red", col.
 #' @return Returns the selected option based upon the index provided
 setOption <- function(options, index){
   
-  # Calculate modulus - the remainder when the index is divided by the number of options provided
-  modulus <- index %% length(options)
+  # Check if option is null
+  option <- NULL
+  if(is.null(options) == FALSE){
+    # Calculate modulus - the remainder when the index is divided by the number of options provided
+    modulus <- index %% length(options)
+    
+    # Check if modulus non-zero - there is a remainder
+    if(modulus != 0){
       
-  # Check if modulus non-zero - there is a remainder
-  if(modulus != 0){
-    
-    # Assign option using modulus as index
-    option <- options[modulus]
-    
-  # If no remainder, then index must be the length of the options vector
-  }else{
-    option <- options[length(options)]
+      # Assign option using modulus as index
+      option <- options[modulus]
+      
+      # If no remainder, then index must be the length of the options vector
+    }else{
+      option <- options[length(options)]
+    }
   }
   
   return(option)
