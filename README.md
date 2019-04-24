@@ -1,4 +1,4 @@
-# addTextLabels (DEPRECATED - NOW AVAILABLE MAINTAINED IN `plotteR`)
+# addTextLabels (DEPRECATED - NOW MAINTAINED IN `plotteR`)
 ## Author: Joseph Crispell
 ## Repository created: 11-08-18
 ## Licence: GPL-3
