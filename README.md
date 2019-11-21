@@ -1,8 +1,12 @@
-# addTextLabels (DEPRECATED - NOW MAINTAINED IN `plotteR`)
+# addTextLabels (DEPRECATED - NOW MAINTAINED IN `basicPlotteR`)
 ## Author: Joseph Crispell
 ## Repository created: 11-08-18
 ## Licence: GPL-3
 An R package for add non-overlapping labels onto existing R plot
+
+# DEPRECATED - NOW MAINTAINED IN `basicPlotteR`
+# DEPRECATED - NOW MAINTAINED IN `basicPlotteR`
+# DEPRECATED - NOW MAINTAINED IN `basicPlotteR`
 
 Package can be directly installed into R using:
 ```
